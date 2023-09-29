@@ -1,18 +1,18 @@
 from collections import defaultdict
-from enum import Enum
-from typing import Optional
+from typing import Optional, cast
 
 import numpy as np
-from pydantic import PrivateAttr, validator
+from pydantic import Field, PrivateAttr, validator
 
 from napari.utils.color import ColorArray
 from napari.utils.colormaps.colorbars import make_colorbar
+from napari.utils.compat import StrEnum
 from napari.utils.events import EventedModel
 from napari.utils.events.custom_types import Array
 from napari.utils.translations import trans
 
 
-class ColormapInterpolationMode(str, Enum):
+class ColormapInterpolationMode(StrEnum):
     """INTERPOLATION: Interpolation mode for colormaps.
 
     Selects an interpolation mode for the colormap.
@@ -51,7 +51,7 @@ class Colormap(EventedModel):
     name: str = 'custom'
     _display_name: Optional[str] = PrivateAttr(None)
     interpolation: ColormapInterpolationMode = ColormapInterpolationMode.LINEAR
-    controls: Array[np.float32, (-1,)] = None
+    controls: Array = Field(default_factory=lambda: cast(Array, []))
 
     def __init__(
         self, colors, display_name: Optional[str] = None, **data
@@ -189,7 +189,9 @@ class DirectLabelColormap(Colormap):
         The selected label.
     """
 
-    color_dict: defaultdict = defaultdict(lambda: np.zeros(4))
+    color_dict: defaultdict = Field(
+        default_factory=lambda: defaultdict(lambda: np.zeros(4))
+    )
     use_selection: bool = False
     selection: float = 0.0
 
